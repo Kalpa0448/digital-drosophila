@@ -71,7 +71,6 @@ CONTRACT = [
     ("index.html", "缩放按钮", 'id="zin"'),
     ("index.html", "缩放按钮", 'id="zout"'),
     ("index.html", "缩放按钮", 'id="zrst"'),
-    ("index.html", "模式切换", 'id="modebtn"'),
     ("index.html", "参数面板行", 'class="pp-row"'),
     ("index.html", "参数分组", 'class="pp-group"'),
     ("index.html", "放电条容器", 'id="strip"'),
@@ -166,7 +165,18 @@ def main():
     elif need:
         print("  ⚠ 找不到连接组数据，本地运算会失效")
 
-    # AAPT 会解压 .gz 并去后缀 → 统一改名为 .gz.bin，并同步 worker 里的路径
+    # AAPT 会解压 .gz 并去后缀 → 统一改名为 .gz.bin
+    if os.path.isdir(brain):
+        for n in ("indptr", "dst", "w"):
+            gz = os.path.join(brain, n + ".gz")
+            tgt = os.path.join(brain, n + ".gz.bin")
+            if os.path.exists(gz):
+                if os.path.exists(tgt):
+                    os.remove(tgt)
+                os.rename(gz, tgt)
+                print(f"  {n}.gz → {n}.gz.bin")
+
+    # 并同步 worker 里的路径
     worker = os.path.join(WWW, "brain_worker.js")
     if os.path.exists(worker):
         w = open(worker, encoding="utf-8").read()

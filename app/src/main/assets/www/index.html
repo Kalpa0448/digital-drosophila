@@ -245,16 +245,6 @@ border-radius:14px;padding:8px;backdrop-filter:blur(10px);z-index:5}
     <div class="mtext" style="margin-top:6px">沉默实验 / 刺激对比 / 敏感性排行</div>
   </div>
   <div class="msec">
-    <div class="mtitle">运行模式</div>
-    <div class="row"><button id="modebtn">切换模式</button></div>
-    <div class="mtext" id="sub" style="margin-top:7px">—</div>
-  </div>
-  <div class="msec">
-    <div class="mtitle">部署</div>
-    <div class="row"><button id="openUpdate">⇪ 更新整个网站</button></div>
-    <div class="mtext" style="margin-top:6px">围栏 / 大世界 / 养果蝇 / 实验台 一起换</div>
-  </div>
-  <div class="msec">
     <div class="mtitle">参数</div>
     <div class="row"><button id="paramBtn">⚙︎ 打开参数</button></div>
   </div>
@@ -275,8 +265,36 @@ border-radius:14px;padding:8px;backdrop-filter:blur(10px);z-index:5}
   <div class="msec">
     <div class="mtitle">关于</div>
     <div class="mtext">FlyWire v783 · 138,639 神经元 · CC BY-NC 4.0<br>
-    <b>回放</b>：服务器算好 10 秒推给你；<b>本地</b>：连接组下载到浏览器，Worker 里实时算。</div>
+    <b>本地</b>：连接组 31 MB 下载到浏览器，在 Worker 里实时算，不依赖服务器。</div>
   </div>
+
+  <div class="msec">
+    <div class="mtitle">致谢</div>
+    <div class="mtext" style="line-height:1.75">
+      本项目的果蝇神经回路模型改编自开源项目 <b>fly-sim</b>：<br>
+      <a href="https://github.com/sjy20100819mc-cmyk/fly-sim" target="_blank" rel="noopener"
+         style="color:#7c8cff;word-break:break-all">github.com/sjy20100819mc-cmyk/fly-sim</a><br>
+      <span style="color:#9aa4c0">FlyEM 雄性 CNS v1.0 实测连接组降维果蝇模拟器 ·
+      MIT License · © 2026 sjy20100819mc-cmyk</span>
+    </div>
+    <div class="mtext" style="margin-top:8px;line-height:1.75;color:#b9c2dc">
+      <b>改了什么</b>：原项目用 16.5 万神经元降维成每只 48 个 LIF 神经元，
+      配 3D 身体与自主行为。本站在此基础上做了 48 神经元 / 145 条边（119 条实测）的
+      紧凑回路 <b>flybrain-net.js</b>，并把「由放电率读出行为」接到大世界的
+      巡游 / 觅食 / 求偶 / 逃跑上。<br><br>
+      <b>数据来源</b>：FlyWire FAFB v783（138,639 神经元，CC BY-NC 4.0）与
+      FlyEM 雄性 CNS v1.0（165,122 神经元 / 25,568,639 突触）；全脑 LIF 模型参考
+      philshiu/Drosophila_brain_model。<br><br>
+      <b>许可</b>：MIT License · © 2026 sjy20100819mc-cmyk ·
+      <a href="LICENSE-fly-sim.html" target="_blank" style="color:#7c8cff">许可与致谢全文</a>
+    </div>
+  </div>
+  <div class="msec">
+    <div class="mtitle">部署</div>
+    <div class="row"><button id="openUpdate">⇪ 更新整个网站</button></div>
+    <div class="mtext" style="margin-top:6px">围栏 / 大世界 / 养果蝇 / 实验台 一起换</div>
+  </div>
+  <div id="sub" style="display:none">—</div>
 </div>
 
 <div id="strip">
@@ -351,8 +369,8 @@ border-radius:14px;padding:8px;backdrop-filter:blur(10px);z-index:5}
 <script>
 /* ============ 基础 ============ */
 var trace=null, frames=[], fi=0;
-var MODE=(function(){try{return new URLSearchParams(location.search).get('mode')||'replay';}catch(e){return 'replay';}})();
-var latest={s:.3,c:.2,m:.15};      // 当前这一帧的神经活动（回放或本地运算）
+var MODE='local';   // 只保留本地运算，回放已移除
+var latest={s:.3,c:.2,m:.15};      // 当前这一帧的神经活动（本地运算）
 var worker=null, localInfo={speed:0,brainSec:0,spikes:0};
 var STRIP=48, hist={s:[],c:[],m:[]};
 var drives={hunger:.55,fear:.05,fatigue:.2,curiosity:.3};
@@ -372,26 +390,8 @@ function toast0(t){
 }
 function rnd(a,b){return a+Math.random()*(b-a);}
 
-/* ============ 三条神经通道（回放真数据） ============ */
-if(MODE==='local'){
-  try{ startLocal(); }catch(err){ document.title='ERR '+err.message; }
-}else{
-fetch('trace.json').then(function(r){return r.json();}).then(function(t){
-  trace=t; frames=t.frames;
-  $('#capt').textContent='连接组实时放电（真实模拟回放）';
-  $('#modebtn').textContent='切到「本地运算」';
-  $('#modebtn').onclick=function(){ location.search='?mode=local'; };
-  $('#tinfo').textContent='';
-  setStateRows(t.meta.seconds+' s（回放）','—',t.meta.n_spikes+' 个','—');
-  $('#sub').textContent='138,639 神经元 · 感觉'+t.meta.groups.sensory+' / 中枢'+t.meta.groups.central+' / 输出'+t.meta.groups.motor;
-  var g=t.meta.groups;
-  $('#lb-s').textContent='感觉输入 '+g.sensory;
-  $('#lb-c').textContent='中枢 '+g.central;
-  $('#lb-m').textContent='运动输出 '+g.motor;
-  buildStrip();
-  seedStrip();
-}).catch(function(){ $('#sub').textContent='trace.json 没找到'; });
-}
+/* ============ 三条神经通道（本地运算实时数据） ============ */
+try{ startLocal(); }catch(err){ document.title='ERR '+err.message; }
 
 function act(type){ if(worker){ worker.postMessage(type); } }
 
@@ -418,8 +418,6 @@ function setStateRows(a,b,c,d){
 }
 function startLocal(){
   $('#capt').textContent='本地运算中 · 连接组实时放电';
-  $('#modebtn').textContent='切到「服务器回放」';
-  $('#modebtn').onclick=function(){ location.search=''; };
   $('#tinfo').textContent='加载连接组…';
   $('#state').textContent='加载连接组 3.8 MB…';
 
@@ -1215,9 +1213,8 @@ function tick(){
   var dt=Math.min(clock.getDelta(),.05);
   t+=dt; acc+=dt; bT+=dt;
 
-  // 神经信号（回放）
-  if(MODE==='local' || frames.length){
-    if(MODE!=='local' && acc>.1){ acc=0; fi=(fi+1)%frames.length; latest=frames[fi]; pushStrip(latest); }
+  // 神经信号（本地运算）
+  if(true){
     var f=latest;
     drives.hunger=clamp(drives.hunger + PA.met*dt - PA.sup*f.s*dt, 0, 1);
     drives.fear=clamp(drives.fear + .004*dt + .02*Math.max(0,f.c-.55)*dt - .02*dt, 0, 1);

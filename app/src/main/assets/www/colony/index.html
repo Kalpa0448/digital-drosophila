@@ -68,6 +68,22 @@
     background:#17303f;border:1px solid #35566d;color:#cfe6f8}
   #tipFollow:active{background:#22465c}
   #tipFollow.on{background:#1d6b52;border-color:#2ea67c;color:#d8fff0}
+
+  #ack{position:fixed;inset:0;z-index:40;display:none;align-items:center;justify-content:center;
+    background:#03080ccc;backdrop-filter:blur(3px);padding:18px}
+  #ack.on{display:flex}
+  #ackBox{position:relative;width:min(430px,100%);max-height:82vh;overflow:auto;
+    background:#0b1117;border:1px solid #2b3a48;border-radius:14px;padding:16px 16px 18px;
+    font-size:12px;line-height:1.85;color:#cfdae4;box-shadow:0 16px 48px #000c}
+  #ackBox h3{margin:0 0 10px;font-size:14px;color:#eaf2fa;letter-spacing:.04em}
+  #ackBox b{color:#fff}
+  #ackBox a{color:#7c8cff;word-break:break-all}
+  #ackBox .sec{margin-top:12px;padding-top:10px;border-top:1px solid #1b2632}
+  #ackBox .dim{color:#93a1b3}
+  #ackClose{position:absolute;top:8px;right:8px;width:28px;height:28px;padding:0;border-radius:50%;
+    background:#22303d;border:1px solid #46617a;color:#d6e6f4;font-size:14px;line-height:1;
+    display:flex;align-items:center;justify-content:center;cursor:pointer}
+  #ackClose:active{background:#33485b;transform:scale(.92)}
     z-index:4;font-size:11.5px;color:#9fb6c8;text-align:center;pointer-events:none;transition:opacity .6s;
     opacity:.9;max-width:90vw;text-shadow:0 1px 4px #000}
   body.brainon #hint{display:none}
@@ -81,7 +97,6 @@
   #glfail b,#paused b{font-size:17px;color:#fff;margin-bottom:8px}
   #paused{z-index:8;background:#070b10aa;pointer-events:none}
 </style>
-
 </head>
 <style id="native-shell">
 
@@ -109,6 +124,7 @@
     <button id="btnPause">⏸ 暂停</button>
     <button id="btnParam">⚙︎ 参数</button>
     <button id="btnReset">↺ 重置</button>
+    <button id="btnAck">ⓘ 致谢</button>
   </div>
 </header>
 
@@ -131,6 +147,30 @@
     快捷键：1食物 2粘板 3投蝇 4清除 · B脑活动 · D气味场 · V视角 · F追踪 · 空格暂停 · R重置
   </div>
 </aside>
+<div id="ack"><div id="ackBox">
+  <button id="ackClose" title="关闭">✕</button>
+  <h3>致谢</h3>
+  本页的果蝇神经回路模型改编自开源项目 <b>fly-sim</b>：<br>
+  <a href="https://github.com/sjy20100819mc-cmyk/fly-sim" target="_blank" rel="noopener">github.com/sjy20100819mc-cmyk/fly-sim</a><br>
+  <span class="dim">FlyEM 雄性 CNS v1.0 实测连接组降维果蝇模拟器 · MIT License · © 2026 sjy20100819mc-cmyk</span>
+  <div class="sec">
+    <b>改了什么</b><br>
+    原项目把 16.5 万神经元降维成每只 48 个 LIF 神经元，配 3D 身体与自主行为。
+    本站沿用其降维思路与参数口径（细胞类型分组、≥5 突触建边、gain ≈0.4、w_syn=0.275），
+    做成 48 神经元 / 145 条边（119 条实测）的紧凑回路 <b>flybrain-net.js</b>，
+    供大世界与围栏调用。
+  </div>
+  <div class="sec">
+    <b>数据来源</b><br>
+    FlyWire FAFB v783（138,639 神经元，CC BY-NC 4.0）；<br>
+    FlyEM 雄性 CNS v1.0（165,122 神经元 / 25,568,639 突触）；<br>
+    全脑 LIF 模型参考 philshiu/Drosophila_brain_model。
+  </div>
+  <div class="sec dim">
+    MIT License · © 2026 sjy20100819mc-cmyk ·
+    <a href="../LICENSE-fly-sim.html" target="_blank">许可与致谢全文</a>
+  </div>
+</div></div>
 <div id="tip"><button id="tipClose" title="关闭">✕</button><div id="tipBody"></div><button id="tipFollow">🎯 追踪这只</button></div>
 <div id="snapview"><img alt="快照"><span>长按图片可保存 / 分享到 QQ ｜ 点任意处关闭</span></div>
 <div id="hint">拖动旋转 · 双指缩放 · 轻点地面放置 · 轻点果蝇看状态（面板里可追踪）</div>
@@ -2143,6 +2183,16 @@ btnParam.addEventListener('click', () => {
   btnParam.classList.toggle('on');
 });
 document.getElementById('btnReset').addEventListener('click', () => resetWorld());
+
+/* 致谢浮层 */
+(function(){
+  const ack=document.getElementById('ack');
+  if(!ack) return;
+  document.getElementById('btnAck').addEventListener('click', () => ack.classList.add('on'));
+  document.getElementById('ackClose').addEventListener('click', () => ack.classList.remove('on'));
+  ack.addEventListener('click', e => { if(e.target===ack) ack.classList.remove('on'); });
+  document.addEventListener('keydown', e => { if(e.key==='Escape') ack.classList.remove('on'); });
+})();
 window.addEventListener('keydown', e => {
   const k = e.key.toLowerCase();
   if (k === '1') setMode('food');
