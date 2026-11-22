@@ -1,8 +1,16 @@
+<div align="center">
+
+<img src="docs/icon.png" width="128" height="128" alt="数字果蝇 Logo">
+
 # 数字果蝇 · Digital Drosophila
 
 把一整套**果蝇全脑模拟实验**，做成能装进口袋的原生 Android 应用。
 
 3D 活体围栏 · 2D 生态大世界 · 3D 养果蝇 —— 全部离线运行
+
+<sub>Android 7.0+ · 完全离线 · 138,639 神经元本地运算</sub>
+
+</div>
 
 ---
 
