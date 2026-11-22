@@ -26,6 +26,16 @@ class AboutSheet {
     private final Activity act;
     private final FrameLayout root;
 
+    interface Listener {
+        void onCheckUpdate();
+
+        void onAutoUpdateChanged(boolean on);
+    }
+
+    private Listener listener;
+    private TextView updateValue;
+    private android.widget.Switch autoSwitch;
+
     private FrameLayout box;
     private View scrim;
     private LinearLayout panel;
@@ -158,6 +168,8 @@ class AboutSheet {
         body.setOrientation(LinearLayout.VERTICAL);
         body.setPadding(dp(16), dp(10), dp(16), dp(18));
 
+        body.addView(settingsCard());
+
         body.addView(card("这是什么", new String[]{
                 "把果蝇全脑模拟实验做成能装进口袋的原生应用。",
                 "3D 活体围栏、2D 生态大世界、3D 养果蝇三个场景全部内置于 APK，断网也能运行。",
@@ -235,6 +247,92 @@ class AboutSheet {
         p.rightMargin = dp(4);
         v.setLayoutParams(p);
         return v;
+    }
+
+    void setListener(Listener l) {
+        this.listener = l;
+    }
+
+    /** 供外部更新右侧状态文字（如「发现新版本」） */
+    void setUpdateStatus(String text, boolean highlight) {
+        if (updateValue == null) return;
+        updateValue.setText(text);
+        updateValue.setTextColor(highlight ? 0xFF34D399 : 0xFF5C6478);
+    }
+
+    void setAutoChecked(boolean on) {
+        if (autoSwitch != null) autoSwitch.setChecked(on);
+    }
+
+    private View settingsCard() {
+        LinearLayout c = new LinearLayout(act);
+        c.setOrientation(LinearLayout.VERTICAL);
+        GradientDrawable bg = new GradientDrawable();
+        bg.setShape(GradientDrawable.RECTANGLE);
+        bg.setCornerRadius(dp(18));
+        bg.setColor(0x0DFFFFFF);
+        c.setBackground(bg);
+        c.setPadding(dp(14), dp(4), dp(14), dp(4));
+        LinearLayout.LayoutParams clp = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        clp.bottomMargin = dp(10);
+        c.setLayoutParams(clp);
+
+        // 检查更新
+        LinearLayout r1 = new LinearLayout(act);
+        r1.setOrientation(LinearLayout.HORIZONTAL);
+        r1.setGravity(Gravity.CENTER_VERTICAL);
+        r1.setPadding(0, dp(12), 0, dp(12));
+        r1.setClickable(true);
+        r1.setOnClickListener(v -> {
+            if (listener != null) listener.onCheckUpdate();
+        });
+
+        TextView t1 = new TextView(act);
+        t1.setText("检查更新");
+        t1.setTextColor(0xFFD7DEEA);
+        t1.setTextSize(12.5f);
+        r1.addView(t1, new LinearLayout.LayoutParams(0,
+                ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+
+        updateValue = new TextView(act);
+        updateValue.setText("v" + BuildConfig.VERSION_NAME);
+        updateValue.setTextColor(0xFF5C6478);
+        updateValue.setTextSize(11f);
+        r1.addView(updateValue);
+        c.addView(r1);
+
+        View sep = new View(act);
+        sep.setBackgroundColor(0x14FFFFFF);
+        c.addView(sep, new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, dp(1)));
+
+        // 自动检查更新
+        LinearLayout r2 = new LinearLayout(act);
+        r2.setOrientation(LinearLayout.HORIZONTAL);
+        r2.setGravity(Gravity.CENTER_VERTICAL);
+        r2.setPadding(0, dp(10), 0, dp(10));
+
+        TextView t2 = new TextView(act);
+        t2.setText("自动检查更新");
+        t2.setTextColor(0xFFD7DEEA);
+        t2.setTextSize(12.5f);
+        r2.addView(t2, new LinearLayout.LayoutParams(0,
+                ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+
+        autoSwitch = new android.widget.Switch(act);
+        autoSwitch.setShowText(false);
+        autoSwitch.setThumbTintList(android.content.res.ColorStateList.valueOf(0xFFFFFFFF));
+        autoSwitch.setTrackTintList(android.content.res.ColorStateList.valueOf(0x33FFFFFF));
+        autoSwitch.setOnCheckedChangeListener((b, checked) -> {
+            autoSwitch.setTrackTintList(android.content.res.ColorStateList.valueOf(
+                    checked ? 0x8834D399 : 0x33FFFFFF));
+            if (listener != null) listener.onAutoUpdateChanged(checked);
+        });
+        r2.addView(autoSwitch);
+        c.addView(r2);
+
+        return c;
     }
 
     private View card(String title, String[] lines, String[][] pairs) {

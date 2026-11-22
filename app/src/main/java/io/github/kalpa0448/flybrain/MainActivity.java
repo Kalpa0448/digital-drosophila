@@ -76,6 +76,8 @@ public class MainActivity extends Activity {
     private ChartSheet chartSheet;
     private AboutSheet aboutSheet;
     private InfoCard infoCard;
+    private UpdateSheet updateSheet;
+    private android.content.SharedPreferences prefs;
     private LegendCard legendCard;
     private ParamSheet colonyParamSheet;
     private PageHud worldHud;
@@ -159,6 +161,24 @@ public class MainActivity extends Activity {
         worldParamSheet = new ParamSheet(this, root, "个性化设置", ".prow", ".pg");
         chartSheet = new ChartSheet(this, root);
         aboutSheet = new AboutSheet(this, root);
+        updateSheet = new UpdateSheet(this, root);
+        prefs = getSharedPreferences("flybrain", MODE_PRIVATE);
+        aboutSheet.setListener(new AboutSheet.Listener() {
+            @Override
+            public void onCheckUpdate() {
+                aboutSheet.hide();
+                updateSheet.show();
+            }
+
+            @Override
+            public void onAutoUpdateChanged(boolean on) {
+                prefs.edit().putBoolean("auto_update", on).apply();
+                if (on) {
+                    updateSheet.startCheck(true);
+                }
+            }
+        });
+        aboutSheet.setAutoChecked(prefs.getBoolean("auto_update", true));
         infoCard = new InfoCard(this, root);
         legendCard = new LegendCard(this, root);
         colonyParamSheet = new ParamSheet(this, root, "参数", "#sliders .row", "#sliders h3");
@@ -228,6 +248,26 @@ public class MainActivity extends Activity {
         setContentView(root);
         enterImmersive();
         select(0);
+
+        if (prefs.getBoolean("auto_update", true)) {
+            uiH.postDelayed(() -> {
+                if (prefs.getBoolean("auto_update", true)) autoCheckOnce();
+            }, 2600);
+        }
+    }
+
+    /** 启动时静默检查：有新版就更新「关于」行状态，不打断用户 */
+    private void autoCheckOnce() {
+        new UpdateChecker().check(r -> {
+            if (r.ok && r.hasUpdate) {
+                aboutSheet.setUpdateStatus("发现 " + r.latestTag, true);
+                android.widget.Toast.makeText(this,
+                        "发现新版本 " + r.latestTag + "，可在「关于」页更新",
+                        android.widget.Toast.LENGTH_LONG).show();
+            } else if (r.ok) {
+                aboutSheet.setUpdateStatus("已是最新", false);
+            }
+        });
     }
 
     // ---------------- 底部导航 ----------------
@@ -899,6 +939,10 @@ public class MainActivity extends Activity {
 
     @Override
     public void onBackPressed() {
+        if (updateSheet != null && updateSheet.isOpen()) {
+            updateSheet.hide();
+            return;
+        }
         if (aboutSheet != null && aboutSheet.isOpen()) {
             aboutSheet.hide();
             return;
