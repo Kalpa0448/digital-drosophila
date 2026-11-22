@@ -17,8 +17,8 @@ android {
         applicationId 'io.github.kalpa0448.flybrain'
         minSdkVersion 24
         targetSdkVersion 33
-        versionCode 14500
-        versionName '1.45.0'
+        versionCode 14600
+        versionName '1.46.0'
     }
 
     signingConfigs {

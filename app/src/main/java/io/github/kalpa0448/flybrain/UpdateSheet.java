@@ -187,9 +187,10 @@ class UpdateSheet {
         action.setGravity(Gravity.CENTER);
         action.setBackground(round(ACCENT, 16));
         action.setOnClickListener(v -> onAction());
+        action.setMinHeight(dp(46));
         LinearLayout.LayoutParams alp = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        alp.setMargins(dp(20), dp(8), dp(20), dp(18));
+        alp.setMargins(dp(10), dp(8), dp(10), dp(16));
         panel.addView(action, alp);
 
         root.addView(box, new FrameLayout.LayoutParams(
