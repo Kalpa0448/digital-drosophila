@@ -617,7 +617,6 @@ public class MainActivity extends Activity {
 
     private void openSheet() {
         if (sheetBox == null) return;
-        refreshModeLabel();
         sheetBox.setVisibility(View.VISIBLE);
         sheetScrim.setAlpha(0f);
         sheetScrim.animate().alpha(1f).setDuration(180).start();
@@ -631,25 +630,6 @@ public class MainActivity extends Activity {
         sheetScrim.animate().alpha(0f).setDuration(140).start();
         sheetPanel.animate().translationY(dp(320)).setDuration(180)
                 .withEndAction(() -> sheetBox.setVisibility(View.GONE)).start();
-    }
-
-    private void refreshModeLabel() {
-        if (sheetModeValue == null || current < 0 || webs[current] == null) return;
-        webs[current].evaluateJavascript(
-                "(function(){var b=document.getElementById('modebtn');"
-                        + "return b?b.textContent:'';})()",
-                value -> {
-                    String t = (value == null) ? "" : value.replace("\"", "").trim();
-                    String label;
-                    if (t.contains("本地运算")) {
-                        label = "回放";
-                    } else if (t.contains("回放")) {
-                        label = "本地运算";
-                    } else {
-                        label = "—";
-                    }
-                    if (sheetModeValue != null) sheetModeValue.setText(label);
-                });
     }
 
     private void js(String code) {
