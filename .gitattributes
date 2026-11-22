@@ -1,0 +1,2 @@
+# 连接组数据体积较大，按二进制存储，不做 diff
+app/src/main/assets/www/brain/* binary

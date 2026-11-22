@@ -1,0 +1,64 @@
+plugins {
+    id 'com.android.application'
+}
+
+def keystorePropsFile = rootProject.file("keystore.properties")
+def keystoreProps = new Properties()
+if (keystorePropsFile.exists()) {
+    keystoreProps.load(new FileInputStream(keystorePropsFile))
+}
+
+android {
+    namespace 'io.github.kalpa0448.flybrain'
+    compileSdkVersion 33
+    buildToolsVersion '33.0.0'
+
+    defaultConfig {
+        applicationId 'io.github.kalpa0448.flybrain'
+        minSdkVersion 24
+        targetSdkVersion 33
+        versionCode 14300
+        versionName '1.43.0'
+    }
+
+    signingConfigs {
+        release {
+            if (keystoreProps.containsKey('storeFile')) {
+                storeFile rootProject.file(keystoreProps['storeFile'])
+                storePassword keystoreProps['storePassword']
+                keyAlias keystoreProps['keyAlias']
+                keyPassword keystoreProps['keyPassword']
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            if (keystoreProps.containsKey('storeFile')) {
+                signingConfig signingConfigs.release
+            }
+        }
+        debug {
+            applicationIdSuffix '.debug'
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    // 连接组数据本来就是 gz，再压一次只浪费装机时间
+    aaptOptions {
+        noCompress 'gz'
+    }
+
+    packagingOptions {
+        jniLibs { useLegacyPackaging false }
+    }
+}
+
+dependencies {
+    // 零第三方依赖：资源拦截、底部导航、沉浸式全部手写
+}
